@@ -21,7 +21,7 @@
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             animation: fadeIn 0.8s ease-in-out;
         }
@@ -96,44 +96,37 @@
 
 <body>
     <div class="container">
-        <h2>🩺 Triệu chứng bạn đã chọn</h2>
-        <ul id="selected-list"></ul>
-        <button class="back-btn" onclick="window.location.href='symptoms.html'">← Quay lại</button>
+        <h2>🩺 Dữ liệu đã chọn</h2>
+        <div id="rec-box"></div>
+        <button class="back-btn" onclick="window.location.href='categories.html'">← Quay lại</button>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            const selectedSymptoms = JSON.parse(localStorage.getItem("selectedSymptoms")) || [];
-            const list = document.getElementById("selected-list");
+            const category = localStorage.getItem('selectedCategory');
+            const diseases = JSON.parse(localStorage.getItem('selectedDiseases') || '[]');
+            const symptoms = JSON.parse(localStorage.getItem('selectedSymptoms') || '[]');
 
-            if (selectedSymptoms.length === 0) {
-                list.innerHTML = "<li>Không có triệu chứng nào được chọn.</li>";
-            } else {
-                selectedSymptoms.forEach(symptom => {
-                    const li = document.createElement("li");
-                    li.textContent = symptom;
-                    list.appendChild(li);
-                });
+            const box = document.getElementById('rec-box');
+            let html = '';
+
+            if (category) html += `<p><strong>Lĩnh vực:</strong> ${category}</p>`;
+            if (diseases.length) {
+                html += `<p><strong>Bệnh đã chọn:</strong></p><ul>` +
+                    diseases.map(d => `<li>${d}</li>`).join('') + `</ul>`;
             }
-        });
-        const category = localStorage.getItem('selectedCategory');
-        const diseases = JSON.parse(localStorage.getItem('selectedDiseases') || '[]');
-        const symptoms = JSON.parse(localStorage.getItem('selectedSymptoms') || '[]');
+            if (symptoms.length) {
+                html += `<p><strong>Triệu chứng đã chọn:</strong></p><ul>` +
+                    symptoms.map(s => `<li>${s}</li>`).join('') + `</ul>`;
+            }
 
-        // Ví dụ: render
-        const box = document.getElementById('rec-box'); // 1 div trong body để đổ nội dung
-        let html = '';
-        if (category) html += `<p><strong>Lĩnh vực:</strong> ${category}</p>`;
-        if (diseases.length) {
-            html += `<p><strong>Bệnh đã chọn:</strong></p><ul>` +
-                diseases.map(d => `<li>${d}</li>`).join('') + `</ul>`;
-        }
-        if (symptoms.length) {
-            html += `<p><strong>Triệu chứng đã chọn:</strong></p><ul>` +
-                symptoms.map(s => `<li>${s}</li>`).join('') + `</ul>`;
-        }
-        if (!html) html = `<p class="text-muted">Chưa có dữ liệu hiển thị.</p>`;
-        box.innerHTML = html;
+            if (!html) html = `<p class="text-muted">Chưa có dữ liệu hiển thị.</p>`;
+            box.innerHTML = html;
+
+            // 🔥 Quan trọng: reset lại storage mỗi lần hiển thị để không bị cộng dồn
+            localStorage.removeItem('selectedDiseases');
+            localStorage.removeItem('selectedSymptoms');
+        });
     </script>
 </body>
 
