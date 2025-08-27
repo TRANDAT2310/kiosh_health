@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chọn triệu chứng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-8">
+        <!-- Title -->
+        <h1 id="page-title" class="text-2xl font-bold text-center text-blue-700 mb-6">
+            Chọn triệu chứng
+        </h1>
+
+        <!-- Form -->
+        <form id="symptom-form" class="space-y-6">
+            <!-- Grid triệu chứng -->
+            <div id="symptom-grid"
+                class="grid sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2">
+                <!-- Checkbox sẽ render ở đây -->
+            </div>
+
+            <!-- Nhập khác -->
+            <div>
+                <label class="block font-medium text-gray-700 mb-1">Khác:</label>
+                <input id="other-symptom" type="text" placeholder="Nhập triệu chứng khác..."
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-between">
+                <button type="button" onclick="window.history.back()"
+                    class="px-5 py-2 rounded-lg border border-gray-400 text-gray-600 hover:bg-gray-100">
+                    Quay lại
+                </button>
+                <button type="submit"
+                    class="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow">
+                    Tiếp tục
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const field = urlParams.get("field"); // slug, ví dụ "khoa-nhi"
+        const pageTitle = document.getElementById("page-title");
+        const grid = document.getElementById("symptom-grid");
+        const otherInput = document.getElementById("other-symptom");
+
+        fetch(`/api/symptoms/${field}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    grid.innerHTML = `<p class="text-red-500">${data.error}</p>`;
+                    return;
+                }
+
+                pageTitle.textContent = "Chọn triệu chứng thuộc: " + data.group;
+
+                data.symptoms.forEach(symptom => {
+                    const wrapper = document.createElement("label");
+                    wrapper.className = "flex items-start p-3 border rounded-lg cursor-pointer hover:bg-blue-50 transition";
+                    wrapper.innerHTML = `
+                        <input type="checkbox" name="symptom" value="${symptom['triệu_chứng']}" class="mt-1 mr-3">
+                        <div>
+                            <div class="font-medium text-gray-800">${symptom['triệu_chứng']}</div>
+                            <div class="text-sm text-gray-500">${symptom['mô_tả'] || ""}</div>
+                        </div>
+                    `;
+                    grid.appendChild(wrapper);
+                });
+            })
+            .catch(err => {
+                console.error("Lỗi khi gọi API:", err);
+                grid.innerHTML = `<p class="text-red-500">Không thể tải dữ liệu triệu chứng.</p>`;
+            });
+
+        // Submit
+        document.getElementById("symptom-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            let selected = [];
+            document.querySelectorAll("#symptom-grid input:checked").forEach(cb => selected.push(cb.value));
+
+            if (otherInput.value.trim() !== "") {
+                selected.push(otherInput.value.trim());
+            }
+
+            if (selected.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 triệu chứng.");
+                return;
+            }
+
+            localStorage.setItem("selectedSymptoms", JSON.stringify(selected));
+            window.location.href = "recommendation.html";
+        });
+    </script>
+</body>
+
+</html>
